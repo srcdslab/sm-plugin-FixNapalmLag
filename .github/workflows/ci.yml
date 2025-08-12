@@ -28,7 +28,7 @@ jobs:
       - name: Upload build archive for test runners
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}
+          name: package
           path: /tmp/package
 
   tag:
@@ -61,6 +61,9 @@ jobs:
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v5
+        with:
+          name: package
+          path: artifacts
 
       - name: Versioning
         run: |
@@ -72,12 +75,11 @@ jobs:
 
       - name: Package
         run: |
+          cd artifacts
           ls -Rall
-          if [ -d "./Linux/" ]; then
-            cd ./Linux/
-            tar -czf ../${{ github.event.repository.name }}-${{ env.RELEASE_VERSION }}.tar.gz -T <(\ls -1)
-            cd -
-          fi
+          tar -czf ../${{ github.event.repository.name }}-${{ env.RELEASE_VERSION }}.tar.gz .
+          cd ..
+          ls -la *.tar.gz
 
       - name: Release
         uses: svenstaro/upload-release-action@v2
@@ -87,4 +89,3 @@ jobs:
           tag: ${{ env.RELEASE_VERSION }}
           file_glob: true
           overwrite: true
-
