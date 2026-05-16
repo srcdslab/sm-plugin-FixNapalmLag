@@ -6,64 +6,67 @@
 #include <sdktools>
 #include <dhooks>
 
-Handle g_hRadiusDamage = INVALID_HANDLE;
+DynamicHook g_hRadiusDamage;
 
 public Plugin myinfo =
 {
 	name = "Napalm Lag Fix",
 	author = "GoD-Tony + BotoX",
 	description = "Prevents lag when napalm is used on players",
-	version = "1.0.4",
+	version = "1.0.5",
 	url = "https://forums.alliedmods.net/showthread.php?t=188093"
 };
 
 public void OnPluginStart()
 {
 	// Gamedata.
-	Handle hConfig = LoadGameConfigFile("fixnapalmlag.games");
-	if(hConfig == INVALID_HANDLE)
+	GameData hConfig = new GameData("fixnapalmlag.games");
+	if (!hConfig)
 		SetFailState("Could not find gamedata file: fixnapalmlag.games.txt");
 
-	int offset = GameConfGetOffset(hConfig, "RadiusDamage");
-	if(offset == -1)
+	int offset = hConfig.GetOffset("RadiusDamage");
+	if (offset == -1)
+	{
+		delete hConfig;
 		SetFailState("Failed to find RadiusDamage offset");
+	}
 
-	CloseHandle(hConfig);
+	delete hConfig;
 
 	// DHooks
-	g_hRadiusDamage = DHookCreate(offset, HookType_GameRules, ReturnType_Void, ThisPointer_Ignore, Hook_RadiusDamage);
-	DHookAddParam(g_hRadiusDamage, HookParamType_ObjectPtr);	// 1 - CTakeDamageInfo &info
-	DHookAddParam(g_hRadiusDamage, HookParamType_VectorPtr);	// 2 - Vector &vecSrc
-	DHookAddParam(g_hRadiusDamage, HookParamType_Float);		// 3 - float flRadius
-	DHookAddParam(g_hRadiusDamage, HookParamType_Int);			// 4 - int iClassIgnore
-	DHookAddParam(g_hRadiusDamage, HookParamType_CBaseEntity);	// 5 - CBaseEntity *pEntityIgnore
+	g_hRadiusDamage = new DynamicHook(offset, HookType_GameRules, ReturnType_Void, ThisPointer_Ignore);
+	g_hRadiusDamage.AddParam(HookParamType_ObjectPtr);		// 1 - CTakeDamageInfo &info
+	g_hRadiusDamage.AddParam(HookParamType_VectorPtr);		// 2 - Vector &vecSrc
+	g_hRadiusDamage.AddParam(HookParamType_Float);			// 3 - float flRadius
+	g_hRadiusDamage.AddParam(HookParamType_Int);			// 4 - int iClassIgnore
+	g_hRadiusDamage.AddParam(HookParamType_CBaseEntity);	// 5 - CBaseEntity *pEntityIgnore
 }
 
 public void OnMapStart()
 {
-	DHookGamerules(g_hRadiusDamage, false);
+	g_hRadiusDamage.HookGamerules(Hook_Pre, Hook_RadiusDamage);
 }
 
-public MRESReturn Hook_RadiusDamage(Handle hParams)
+public MRESReturn Hook_RadiusDamage(DHookParam hParams)
 {
-	if(DHookIsNullParam(hParams, 5))
+	if (hParams.IsNull(5))
 		return MRES_Ignored;
 
-	int iDmgBits = DHookGetParamObjectPtrVar(hParams, 1, 60, ObjectValueType_Int);
-	int iEntIgnore = DHookGetParam(hParams, 5);
+	int iDmgBits = hParams.GetObjectVar(1, 60, ObjectValueType_Int);
+	int iEntIgnore = hParams.Get(5);
 
-	if(!(iDmgBits & DMG_BURN))
+	if (!(iDmgBits & DMG_BURN))
 		return MRES_Ignored;
 
 	// Block napalm damage if it's coming from another client.
-	if(1 <= iEntIgnore <= MaxClients)
+	if (1 <= iEntIgnore <= MaxClients)
 		return MRES_Supercede;
 
 	// Block napalm that comes from grenades
 	char sEntClassName[64];
-	if(GetEntityClassname(iEntIgnore, sEntClassName, sizeof(sEntClassName)))
+	if (GetEntityClassname(iEntIgnore, sEntClassName, sizeof(sEntClassName)))
 	{
-		if(!strcmp(sEntClassName, "hegrenade_projectile"))
+		if (!strcmp(sEntClassName, "hegrenade_projectile"))
 			return MRES_Supercede;
 	}
 
