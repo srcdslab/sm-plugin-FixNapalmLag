@@ -13,7 +13,7 @@ public Plugin myinfo =
 	name = "Napalm Lag Fix",
 	author = "GoD-Tony + BotoX",
 	description = "Prevents lag when napalm is used on players",
-	version = "1.0.5",
+	version = "1.0.6",
 	url = "https://forums.alliedmods.net/showthread.php?t=188093"
 };
 
@@ -59,7 +59,7 @@ public MRESReturn Hook_RadiusDamage(DHookParam hParams)
 		return MRES_Ignored;
 
 	// Block napalm damage if it's coming from another client.
-	if (1 <= iEntIgnore <= MaxClients)
+	if (iEntIgnore >= 1 && iEntIgnore <= MaxClients)
 		return MRES_Supercede;
 
 	// Block napalm that comes from grenades
