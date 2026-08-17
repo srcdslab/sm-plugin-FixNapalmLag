@@ -5,10 +5,10 @@ This repository contains a SourceMod plugin called "FixNapalmLag" that prevents 
 
 ## Technical Environment
 - **Language**: SourcePawn (.sp files)
-- **Platform**: SourceMod 1.11+ (minimum version specified in sourceknight.yaml)
+- **Platform**: SourceMod 1.12+ (targeted by the GitHub Actions CI workflow)
 - **Game Engines**: Source Engine (CS:GO, CS:S)
-- **Build System**: SourceKnight (modern SourceMod build tool)
-- **Compiler**: SourcePawn Compiler (spcomp) via SourceKnight
+- **Build System**: Native GitHub Actions workflow using `rumblefrog/setup-sp`
+- **Compiler**: SourcePawn Compiler (spcomp) via `rumblefrog/setup-sp`
 - **Dependencies**: 
   - SourceMod Core
   - DHooks extension (for function hooking)
@@ -24,35 +24,25 @@ This repository contains a SourceMod plugin called "FixNapalmLag" that prevents 
 
 /.github/
 ├── workflows/
-│   └── ci.yml                   # CI/CD pipeline using SourceKnight
+│   └── ci.yml                   # CI/CD pipeline using native GitHub Actions
 └── dependabot.yml               # Dependency management
 
-/sourceknight.yaml               # Build configuration
 /.gitignore                      # Git ignore patterns
 ```
 
-## Build System (SourceKnight)
-This project uses SourceKnight as its build system instead of traditional spcomp compilation:
-
-### Configuration File: `sourceknight.yaml`
-- Defines project dependencies (SourceMod version)
-- Specifies build targets
-- Configures output directories
-- Handles automatic dependency downloading
+## Build System (GitHub Actions)
+This project uses a native GitHub Actions workflow to compile the plugin with spcomp:
 
 ### Build Commands
 ```bash
-# Using SourceKnight action (in CI)
-uses: maxime1907/action-sourceknight@v1
-with:
-  cmd: build
+# CI compiles directly with spcomp, set up via rumblefrog/setup-sp
+spcomp -i include -o ../plugins/FixNapalmLag.smx FixNapalmLag.sp
 
-# Local development (if SourceKnight is installed)
-sourceknight build
+# Local development requires a local spcomp binary matching SourceMod 1.12.x
 ```
 
 ### CI/CD Pipeline
-- Builds on `ubuntu-24.04`
+- Builds on `ubuntu-latest`
 - Creates release packages automatically
 - Uploads artifacts for distribution
 - Supports both tagged releases and latest builds
@@ -128,7 +118,7 @@ public MRESReturn Hook_RadiusDamage(Handle hParams)
 ### Making Changes
 1. **Edit Source Code**: Modify `addons/sourcemod/scripting/FixNapalmLag.sp`
 2. **Update Game Data**: If needed, modify `addons/sourcemod/gamedata/fixnapalmlag.games.txt`
-3. **Test Locally**: Use SourceKnight build or test on development server
+3. **Test Locally**: Compile with a local spcomp or test on a development server
 4. **CI Validation**: Push changes trigger automated builds
 
 ### Testing Guidelines
@@ -154,7 +144,6 @@ public MRESReturn Hook_RadiusDamage(Handle hParams)
 ## Common Issues & Troubleshooting
 
 ### Build Issues
-- Ensure SourceKnight dependencies are available
 - Verify gamedata file is found and loaded
 - Check SourceMod version compatibility
 
@@ -172,7 +161,7 @@ public MRESReturn Hook_RadiusDamage(Handle hParams)
 - Keep changes minimal and focused on the plugin's purpose
 
 ## Dependencies & Compatibility
-- **SourceMod**: 1.11.0+ (as specified in sourceknight.yaml)
+- **SourceMod**: 1.12.x (as targeted by the CI workflow)
 - **DHooks**: Required for function hooking
 - **Games**: Counter-Strike: Source, Counter-Strike: Global Offensive
 - **Platforms**: Windows, Linux, macOS (with appropriate gamedata offsets)
@@ -180,5 +169,4 @@ public MRESReturn Hook_RadiusDamage(Handle hParams)
 ## Key Files to Understand
 - `FixNapalmLag.sp`: Core plugin logic and DHooks implementation
 - `fixnapalmlag.games.txt`: Game-specific memory offsets
-- `sourceknight.yaml`: Build configuration and dependencies
 - `.github/workflows/ci.yml`: Automated build and release process
