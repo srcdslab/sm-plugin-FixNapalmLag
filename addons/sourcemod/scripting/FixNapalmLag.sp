@@ -13,7 +13,7 @@ public Plugin myinfo =
 	name = "Napalm Lag Fix",
 	author = "GoD-Tony + BotoX",
 	description = "Prevents lag when napalm is used on players",
-	version = "1.0.6",
+	version = "1.0.7",
 	url = "https://forums.alliedmods.net/showthread.php?t=188093"
 };
 

@@ -8,6 +8,7 @@
 			{
 				"windows"	"68"
 				"linux"		"69"
+				"linux64"		"69"
 				"mac"		"69"
 			}
 		}
